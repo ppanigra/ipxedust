@@ -153,7 +153,11 @@ func (c *Server) listenAndServeHTTP(ctx context.Context) error {
 		<-ctx.Done()
 		_ = hs.Shutdown(ctx)
 	}()
-	err := ihttp.ListenAndServe(ctx, c.HTTP.Addr, hs)
+	c.Log.Info("reading certificates")
+	certFile := "C:\\temp\\server-crt.pem"
+	keyFile := "C:\\temp\\server-key.pem"
+
+	err := ihttp.ListenAndServeTLS(ctx, c.HTTP.Addr, certFile, keyFile, hs)
 	if errors.Is(err, http.ErrServerClosed) {
 		err = nil
 	}

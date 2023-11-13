@@ -4,6 +4,7 @@ package ihttp
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -36,6 +37,21 @@ type Handler struct {
 // the returned error is http.ErrServerClosed.
 func ListenAndServe(ctx context.Context, addr netip.AddrPort, h *http.Server) error {
 	conn, err := net.Listen("tcp", addr.String())
+	if err != nil {
+		return err
+	}
+	return Serve(ctx, conn, h)
+}
+
+func ListenAndServeTLS(ctx context.Context, addr netip.AddrPort, certFile string, keyFile string, h *http.Server) error {
+	config := &tls.Config{}
+	config.Certificates = make([]tls.Certificate, 1)
+	var err error
+	config.Certificates[0], err = tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		return err
+	}
+	conn, err := tls.Listen("tcp", addr.String(), config)
 	if err != nil {
 		return err
 	}
